@@ -1,12 +1,4 @@
-function [ x , var] = NetEst2( C, L)
-
-% NetEst2 does a few time saving things with the goal of determining
-% whether or not the connection is optimal, including:
-% 1. layer checks to see
-% if the optimal estimate is even possible, and if not, ending the
-% computation there and throwing variance = 1 + 1/L(1)
-% 2. if there is only one agent in the second layer, it's automatically
-% optimal, so skip the comp. and spit out variance 1/L(1).
+function [ x , var] = NetEst( C, L)
 
 %% Explanation
 %NetEst Calculates estimates given the connection matrix, and for now
@@ -26,10 +18,6 @@ function [ x , var] = NetEst2( C, L)
 %C = ConnectionMatrix(8,[1 4],[2 4 5],[3 5],[4 6],[5 7],[6 8],[7 8])
 %L = [3 2 2 1]
 
-if L(2) == 1
-    x = 1;
-    var = 1/L(1);
-else
 %% Constants
 N = sum(L);             %total number of agents
 I = zeros(N,N);         %initial info matrix
@@ -50,17 +38,11 @@ TC = transpose(C);
 %the first layer agents and this tells us when we have an optimal network
 %because the final row will have the first L(1) entries all equal to 1/L(1)
 
-
-
-nonopt = 0;
-%first check for if reduced to 3 layer is possibly optimal
-if rank( C(L(1)+1:L(1)+L(2) ,1:L(1)) )  < rank([C(L(1)+1:L(1)+L(2) ,1:L(1)); ones(1,L(1)) ])
-        nonopt = 1;
-        x = 0;
-        var = 1 + (1/L(1));
-        %C(L(1)+1:L(1)+L(2) ,1:L(1))
+%define the info matrix for the top layer
+for k = 1:L(1)
+    I(k,k) = 1;
 end
-    
+
 %define the info matrix for the second layer
 for k = 1:L(2)
     for j = 1:L(1)  %only need to add numbers for the top layer entries
@@ -72,11 +54,6 @@ for k = 1:L(2)
     end
 end
 
-if nonopt == 0
-%define the info matrix for the top layer
-for k = 1:L(1)
-    I(k,k) = 1;
-end
 %%Induction Computation
 m = L(1); %layer induction constant
 
@@ -215,9 +192,6 @@ var = 1/sum(sum(inv(finalcov)));  %determinant for the final agent's covariance 
     %the equal (1) variance network is optimal when var = 1/L(1)
         
 x = I;  %the info matrix is returned as the x output argument
-end
-
-end
 
 end  %of function
 
